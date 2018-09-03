@@ -1,34 +1,97 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import React, { Component } from 'react';
+import { NavigationActions } from 'react-navigation';
+import { View, Text, TextInput, TouchableOpacity, StatusBar, ActivityIndicator } from 'react-native';
+import PropTypes from 'prop-types';
 import styles from './styles';
+import api from '../../services/api';
 
-const Welcome = () => (
-  <View style={styles.container}>
-    <Text style={styles.title}> Bem-vindo</Text>
-    <Text style={styles.text}>
-      Para continuar precisamos que você informe seu usuário do Github
-    </Text>
+export default class Welcome extends Component {
 
-    <View style={styles.form}>
-      <TextInput
-        style={styles.input}
-        autoCapitalize='none'
-        autoCorrect={false}
-        placeholder='Digite seu usuário'
-        underlineColorAndroid='rgba(0, 0, 0, 0)'
-      />
+  static navigationOptions = {
+    header: null,
+  };
 
-      <TouchableOpacity style={styles.button} onPress={() => {}}>
-        <Text style={styles.buttonText}>Prosseguir</Text>
-      </TouchableOpacity>
+  state = {
+    username: '',
+    loading: false,
+    errorMessage: '',
+  };
 
-    </View>
+  static propTypes = {
+    navigation: PropTypes.shape({
+      dispatch: PropTypes.func,
+    }).isRequired,
+  };
 
-  </View>
-);
+  signin = async () => {
 
-Welcome.navigationOptions = {
-  header: null,
+    const { username } = this.state;
+
+    console.tron.log('nome ->' + username);
+
+    if (username.length === 0) return;
+
+    this.setState({ loading: true });
+
+    try {
+      await this.checkUserExists(username);
+
+      const resetAction = NavigationActions.reset({
+        index: 0,
+        actions: [
+          NavigationActions.navigate({ routeName: 'User' })
+        ]
+      });
+
+      this.props.navigation.dispatch(resetAction);
+
+    } catch (error) {
+      this.setState({ loading: false, errorMessage: 'Usuario nao existe' });
+    }
+
+  }
+
+
+  checkUserExists = async (userName) => {
+    const user = await api.get(`/users/${userName}`);
+
+    return user;
+  }
+
+  render() {
+    return (
+      <View style={styles.container}>
+
+        <StatusBar barStyle='light-content' />
+
+        <Text style={styles.title}> Bem-vindo</Text>
+        <Text style={styles.text}>
+          Para continuar precisamos que você informe seu usuário do Github
+        </Text>
+
+        {!!this.state.errorMessage && <Text style={styles.error}> {this.state.errorMessage} </Text>}
+
+        <View style={styles.form}>
+          <TextInput
+            style={styles.input}
+            autoCapitalize='none'
+            autoCorrect={false}
+            placeholder='Digite seu usuário'
+            underlineColorAndroid='rgba(0, 0, 0, 0)'
+            value={this.state.username}
+            onChangeText={username => this.setState({ username })}
+          />
+
+          <TouchableOpacity style={styles.button} onPress={this.signin}>
+            {this.state.loading
+              ? <ActivityIndicator size='small' color='#FFF' />
+              : <Text style={styles.buttonText}>Prosseguir</Text>
+            }
+          </TouchableOpacity>
+
+        </View>
+
+      </View>
+    );
+  }
 }
-
-export default Welcome;
