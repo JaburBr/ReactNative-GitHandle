@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { NavigationActions } from 'react-navigation';
-import { View, Text, TextInput, TouchableOpacity, StatusBar, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StatusBar, ActivityIndicator, AsyncStorage } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from './styles';
 import api from '../../services/api';
@@ -23,11 +23,13 @@ export default class Welcome extends Component {
     }).isRequired,
   };
 
+  saveUser = async (username) => {
+    await AsyncStorage.setItem('@username', username);
+  };
+
   signin = async () => {
 
     const { username } = this.state;
-
-    console.tron.log('nome ->' + username);
 
     if (username.length === 0) return;
 
@@ -35,6 +37,8 @@ export default class Welcome extends Component {
 
     try {
       await this.checkUserExists(username);
+
+      this.saveUser(username);
 
       const resetAction = NavigationActions.reset({
         index: 0,
