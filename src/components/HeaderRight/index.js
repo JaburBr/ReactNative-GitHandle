@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Text, TouchableOpacity } from 'react-native';
 import styles from './styles';
+import Icons from 'react-native-vector-icons/FontAwesome';
 
 class HeaderRight extends Component {
   constructor(props) {
