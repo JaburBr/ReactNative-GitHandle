@@ -1,12 +1,58 @@
-import React  from 'react';
-import { View } from 'react-native';
+import React, { Component } from 'react';
+import { View, Text, AsyncStorage, ActivityIndicator, FlatList } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import api from '../../services/api';
+import styles from './styles';
 
-const Repositories = () => (
-  <View />
-);
+import RepositoryItem from './components/RepositoryItem';
 
-Repositories.navigationOptions = {
-  title: 'Repositorios',
-};
+export default class Repositories extends Component {
 
-export default Repositories;
+  static navigationOptions = {
+    title: 'Repositorios',
+    tabBarIcon: ({ tintColor }) => (
+      <Icon name='list-alt' size={24} color={tintColor} />
+    ),
+  };
+
+  state = {
+    data: [],
+    loading: true,
+  }
+
+  componentDidMount() {
+    this.loadRepositories();
+  }
+
+  loadRepositories = async () => {
+    const username = await AsyncStorage.getItem('@username');
+    const response = await api.get(`/users/${username}/repos`);
+
+    this.setState({ data: response.data, loading: false });
+
+
+  }
+
+  renderList = () => (
+    <FlatList
+      data={this.state.data}
+      keyExtractor={item => String(item.id)}
+      renderItem={this.renderListItem}
+    />
+  );
+
+  renderListItem = ({ item }) => <RepositoryItem repository={item} />
+
+
+  render() {
+    return (
+      <View style={styles.container} >
+        {this.state.loading
+          ? <ActivityIndicator style={styles.loading} />
+          : this.renderList()
+        }
+      </View>
+    );
+  };
+
+}
