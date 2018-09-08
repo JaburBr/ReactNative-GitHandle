@@ -18,6 +18,7 @@ export default class Repositories extends Component {
   state = {
     data: [],
     loading: true,
+    refreshing: false,
   }
 
   componentDidMount() {
@@ -25,11 +26,17 @@ export default class Repositories extends Component {
   }
 
   loadRepositories = async () => {
+
+    this.setState({ refreshing: true });
+
     const username = await AsyncStorage.getItem('@username');
     const response = await api.get(`/users/${username}/repos`);
 
-    this.setState({ data: response.data, loading: false });
-
+    this.setState({
+      data: response.data,
+      loading: false,
+      refreshing: false
+    });
 
   }
 
@@ -38,6 +45,8 @@ export default class Repositories extends Component {
       data={this.state.data}
       keyExtractor={item => String(item.id)}
       renderItem={this.renderListItem}
+      onRefresh={this.loadRepositories}
+      refreshing={this.state.refreshing}
     />
   );
 

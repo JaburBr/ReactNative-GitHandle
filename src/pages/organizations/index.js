@@ -19,6 +19,7 @@ export default class Organizations extends Component {
   state = {
     data: [],
     loading: true,
+    refreshing: false
   }
 
   componentDidMount() {
@@ -26,10 +27,13 @@ export default class Organizations extends Component {
   }
 
   loadOrganizations = async () => {
+
+    this.setState({ refreshing: true });
+
     const username = await AsyncStorage.getItem('@username');
     const response = await api.get(`/users/${username}/orgs`);
 
-    this.setState({ data: response.data, loading: false });
+    this.setState({ data: response.data, loading: false, refreshing: false });
 
   }
 
@@ -40,6 +44,8 @@ export default class Organizations extends Component {
       renderItem={this.renderListItem}
       numColumns={2}
       columnWrapperStyle={styles.columnContainer}
+      onRefresh={this.loadOrganizations}
+      refreshing={this.state.refreshing}
     />
   );
 
